@@ -3,12 +3,12 @@ module PkgBenchUtils
 using PkgBenchmark: judge, export_markdown
 using GitHub: create_gist
 
-function post_judge(package_name::String;
-                    target = nothing,
-                    baseline = "HEAD^",
-                    script = nothing,
-                    public = false,
-                    kwargs...)
+guess_package() = basename(pwd())
+
+function _judge(package_name::String = guess_package();
+                target = nothing,
+                baseline = "HEAD^",
+                kwargs...)
 
     if target === nothing
         args = (baseline,)
@@ -16,8 +16,29 @@ function post_judge(package_name::String;
         args = (target, baseline)
     end
 
-    results = judge(
-        package_name,
+    return judge(package_name, args...; kwargs...)
+end
+
+function as_markdown(results)
+    io = IOBuffer()
+    export_markdown(io, results)
+    seek(io, 0)
+    return Markdown.parse(io)
+end
+
+function show_judge(args...; kwargs...)
+    results = _judge(args...; kwargs...)
+    display(as_markdown(results))
+    println()
+    return results
+end
+
+function post_judge(args...;
+                    script = nothing,
+                    public = false,
+                    kwargs...)
+
+    results = _judge(
         args...;
         script = script,
         kwargs...)
