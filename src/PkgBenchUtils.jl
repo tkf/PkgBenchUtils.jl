@@ -4,6 +4,8 @@ using PkgBenchmark: judge, export_markdown
 using GitHub: create_gist
 using Setfield
 
+include("ir_dump.jl")
+
 struct Results
     results
     script
