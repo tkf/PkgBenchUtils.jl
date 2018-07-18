@@ -33,17 +33,11 @@ function show_judge(args...; kwargs...)
     return results
 end
 
-function post_judge(args...;
-                    script = nothing,
-                    public = false,
-                    kwargs...)
-
-    results = _judge(
-        args...;
-        script = script,
-        kwargs...)
-
-    # https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
+"""
+https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
+"""
+function post_results(results, script = nothing)
+    package_name = results.baseline_results.name
 
     gist_json = Dict(
         :description => "A benchmark for $package_name",
@@ -60,8 +54,20 @@ function post_judge(args...;
         )
     end
 
-    posted_gist = create_gist(params = gist_json)
+    return create_gist(params = gist_json)
+end
 
+function post_judge(args...;
+                    script = nothing,
+                    public = false,
+                    kwargs...)
+
+    results = _judge(
+        args...;
+        script = script,
+        kwargs...)
+
+    posted_gist = post_results(results, script)
     run(`xdg-open $(get(posted_gist.html_url))`)
 
     return results, posted_gist
