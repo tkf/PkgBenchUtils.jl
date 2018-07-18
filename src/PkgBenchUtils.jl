@@ -2,12 +2,35 @@ module PkgBenchUtils
 
 using PkgBenchmark: judge, export_markdown
 using GitHub: create_gist
+using Setfield
+
+struct Results
+    results
+    script
+    posted
+
+    Results(results, script = nothing, posted = nothing) =
+        new(results, script, posted)
+end
+
+function Base.show(io::IO, r::Results)
+    print(io, "PkgBenchUtils.Results")
+    if r.script !== nothing
+        print(io, " [", r.script, "]")
+    end
+    println(io)
+    if r.posted !== nothing
+        println(io, "URL: ", url(r))
+    end
+    show(io, r.results)
+end
 
 guess_package() = basename(pwd())
 
 function _judge(package_name::String = guess_package();
                 target = nothing,
                 baseline = "HEAD^",
+                script = nothing,
                 kwargs...)
 
     if target === nothing
@@ -16,8 +39,15 @@ function _judge(package_name::String = guess_package();
         args = (target, baseline)
     end
 
-    return judge(package_name, args...; kwargs...)
+    return Results(
+        judge(package_name, args...;
+              script = script,
+              kwargs...),
+        script,
+    )
 end
+
+as_markdown(results::Results) = as_markdown(results.results)
 
 function as_markdown(results)
     io = IOBuffer()
@@ -36,7 +66,10 @@ end
 """
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
 """
-function post_results(results, script = nothing)
+post_results(results::Results) = post_results(results.results,
+                                              results.script)
+
+function post_results(results, script)
     package_name = results.baseline_results.name
 
     gist_json = Dict(
@@ -67,10 +100,12 @@ function post_judge(args...;
         script = script,
         kwargs...)
 
-    posted_gist = post_results(results, script)
-    run(`xdg-open $(get(posted_gist.html_url))`)
+    results = @set results.posted = post_results(results)
+    run(`xdg-open $(url(results))`)
 
-    return results, posted_gist
+    return results
 end
+
+url(results) = get(results.posted.html_url)
 
 end # module
