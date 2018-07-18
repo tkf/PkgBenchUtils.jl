@@ -58,6 +58,7 @@ end
 
 function show_judge(args...; kwargs...)
     results = _judge(args...; kwargs...)
+    println()
     display(as_markdown(results))
     println()
     return results
