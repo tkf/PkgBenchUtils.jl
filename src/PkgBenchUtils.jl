@@ -28,8 +28,10 @@ end
 guess_package() = basename(pwd())
 
 _common_docs = """
-- `target::String`: Default to `"HEAD"`.  (Passed to `PkgBenchmark.judge`)
-- `baseline::String`: Default to `"HEAD^"`.  (Passed to `PkgBenchmark.judge`)
+- `config::Union{Nothing, BenchmarkConfig}`: Configuration to be used
+  if `target` or `baseline` is a `String`.
+- `target`: Default to `"HEAD"`.  (Passed to `PkgBenchmark.judge`)
+- `baseline`: Default to `"HEAD^"`.  (Passed to `PkgBenchmark.judge`)
 - `script::String`: Script from which benchmark `SUITE` is loaded.
   (Passed to `PkgBenchmark.judge`)
 - Other keyword arguments are also passed to `PkgBenchmark.judge`.
@@ -42,19 +44,19 @@ _common_docs = """
 $_common_docs
 """
 function _judge(package_name::String = guess_package();
-                target = nothing,
+                config = nothing,
+                target = "HEAD",
                 baseline = "HEAD^",
                 script = nothing,
                 kwargs...)
 
-    if target === nothing
-        args = (baseline,)
-    else
-        args = (target, baseline)
+    if config !== nothing
+        (target isa String) && (target = @set config.id = target)
+        (baseline isa String) && (baseline = @set config.id = baseline)
     end
 
     return Results(
-        judge(package_name, args...;
+        judge(package_name, target, baseline;
               script = script,
               kwargs...),
         script,
