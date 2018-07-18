@@ -66,10 +66,11 @@ end
 """
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
 """
-post_results(results::Results) = post_results(results.results,
-                                              results.script)
+post_results(results::Results; kwargs...) =
+    post_results(results.results, results.script; kwargs...)
 
-function post_results(results, script)
+function post_results(results, script;
+                      public = false)
     package_name = results.baseline_results.name
 
     gist_json = Dict(
@@ -91,21 +92,23 @@ function post_results(results, script)
 end
 
 function post_judge(args...;
-                    script = nothing,
                     public = false,
+                    open = true,
                     kwargs...)
 
     results = _judge(
         args...;
-        script = script,
         kwargs...)
 
-    results = @set results.posted = post_results(results)
-    run(`xdg-open $(url(results))`)
+    results = @set results.posted = post_results(results; public=public)
+    if open
+        open_url(results)
+    end
 
     return results
 end
 
 url(results) = get(results.posted.html_url)
+open_url(results) = run(`xdg-open $(url(results))`)
 
 end # module
