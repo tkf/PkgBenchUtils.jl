@@ -27,6 +27,20 @@ end
 
 guess_package() = basename(pwd())
 
+_common_docs = """
+- `target::String`: Default to `"HEAD"`.  (Passed to `PkgBenchmark.judge`)
+- `baseline::String`: Default to `"HEAD^"`.  (Passed to `PkgBenchmark.judge`)
+- `script::String`: Script from which benchmark `SUITE` is loaded.
+  (Passed to `PkgBenchmark.judge`)
+- Other keyword arguments are also passed to `PkgBenchmark.judge`.
+"""
+
+"""
+    _judge([pkg::String]; <keyword arguments>) :: Results
+
+# Keyword Arguments
+$_common_docs
+"""
 function _judge(package_name::String = guess_package();
                 target = nothing,
                 baseline = "HEAD^",
@@ -56,6 +70,12 @@ function as_markdown(results)
     return Markdown.parse(io)
 end
 
+"""
+    show_judge([pkg::String]; <keyword arguments>) :: Results
+
+# Keyword Arguments
+$_common_docs
+"""
 function show_judge(args...; kwargs...)
     results = _judge(args...; kwargs...)
     println()
@@ -65,6 +85,8 @@ function show_judge(args...; kwargs...)
 end
 
 """
+    post_results(results::Results; public=false) :: Results
+
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
 """
 post_results(results::Results; kwargs...) =
@@ -92,6 +114,14 @@ function post_results(results, script;
     return create_gist(params = gist_json)
 end
 
+"""
+    post_judge([pkg::String]; <keyword arguments>) :: Results
+
+# Keyword Arguments
+- `public::Bool`: post to public gist if true.
+- `open::Bool`: open posted gist in browser.
+$_common_docs
+"""
 function post_judge(args...;
                     public = false,
                     open = true,
