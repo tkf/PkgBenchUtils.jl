@@ -89,9 +89,13 @@ function show_judge(args...; kwargs...)
 end
 
 """
-    post_results(results::Results; public=false) :: Results
+    post_results(results::Results; <keyword arguments>) :: Results
 
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
+
+# Keyword Arguments
+- `auth`: authentication object created by `GitHub.authenticate` (required).
+- `public::Bool`: post to public gist if true.
 """
 function post_results(results::Results; kwargs...)
     posted = post_results(results.results, results.script; kwargs...)
@@ -125,11 +129,13 @@ end
     post_judge([pkg::String]; <keyword arguments>) :: Results
 
 # Keyword Arguments
+- `auth`: authentication object created by `GitHub.authenticate` (required).
 - `public::Bool`: post to public gist if true.
 - `open::Bool`: open posted gist in browser.
 $_common_docs
 """
 function post_judge(args...;
+                    auth = error("Require: auth = GitHub.authenticate(...)"),
                     public = false,
                     open = true,
                     kwargs...)
@@ -138,7 +144,7 @@ function post_judge(args...;
         args...;
         kwargs...)
 
-    results = post_results(results; public=public)
+    results = post_results(results; public=public, auth=auth)
     if open
         open_url(results)
     end
