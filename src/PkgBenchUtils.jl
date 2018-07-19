@@ -93,11 +93,14 @@ end
 
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
 """
-post_results(results::Results; kwargs...) =
-    post_results(results.results, results.script; kwargs...)
+function post_results(results::Results; kwargs...)
+    posted = post_results(results.results, results.script; kwargs...)
+    return @set results.posted = posted
+end
 
 function post_results(results, script;
-                      public = false)
+                      public = false,
+                      kwargs...)
     package_name = results.baseline_results.name
 
     gist_json = Dict(
@@ -115,7 +118,7 @@ function post_results(results, script;
         )
     end
 
-    return create_gist(params = gist_json)
+     return create_gist(params = gist_json; kwargs...)
 end
 
 """
@@ -135,7 +138,7 @@ function post_judge(args...;
         args...;
         kwargs...)
 
-    results = @set results.posted = post_results(results; public=public)
+    results = post_results(results; public=public)
     if open
         open_url(results)
     end
