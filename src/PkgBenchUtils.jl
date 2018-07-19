@@ -1,8 +1,8 @@
 module PkgBenchUtils
 
 using PkgBenchmark: judge, export_markdown
-using GitHub: create_gist
 using Setfield
+import GitHub
 
 include("ir_dump.jl")
 
@@ -122,22 +122,23 @@ function post_results(results, script;
         )
     end
 
-     return create_gist(params = gist_json; kwargs...)
+    return GitHub.create_gist(params = gist_json; kwargs...)
 end
 
 """
     post_judge([pkg::String]; <keyword arguments>) :: Results
 
 # Keyword Arguments
-- `auth`: authentication object created by `GitHub.authenticate` (required).
+- `auth`: authentication object created by `GitHub.authenticate`.
+  Default to `GitHub.authenticate(ENV["PKGBENCHUTILS_GITHUB_AUTH"])`.
 - `public::Bool`: post to public gist if true.
 - `open::Bool`: open posted gist in browser.
 $_common_docs
 """
 function post_judge(args...;
-                    auth = error("Require: auth = GitHub.authenticate(...)"),
+                    auth = GitHub.authenticate(ENV["PKGBENCHUTILS_GITHUB_AUTH"]),
                     public = false,
-                    open = true,
+                    open = false,
                     kwargs...)
 
     results = _judge(
