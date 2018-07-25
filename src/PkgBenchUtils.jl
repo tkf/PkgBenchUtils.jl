@@ -88,14 +88,19 @@ function show_judge(args...; kwargs...)
     return results
 end
 
+_post_docs = """
+- `auth`: authentication object created by `GitHub.authenticate`.
+  Default to `GitHub.authenticate(ENV["PKGBENCHUTILS_GITHUB_AUTH"])`.
+- `public::Bool`: post to public gist if true.
+"""
+
 """
     post_results(results::Results; <keyword arguments>) :: Results
 
 https://juliaci.github.io/PkgBenchmark.jl/stable/export_markdown.html
 
 # Keyword Arguments
-- `auth`: authentication object created by `GitHub.authenticate` (required).
-- `public::Bool`: post to public gist if true.
+$_post_docs
 """
 function post_results(results::Results; kwargs...)
     posted = post_results(results.results, results.script; kwargs...)
@@ -103,6 +108,7 @@ function post_results(results::Results; kwargs...)
 end
 
 function post_results(results, script;
+                      auth = GitHub.authenticate(ENV["PKGBENCHUTILS_GITHUB_AUTH"]),
                       public = false,
                       kwargs...)
     package_name = results.baseline_results.name
@@ -122,17 +128,19 @@ function post_results(results, script;
         )
     end
 
-    return GitHub.create_gist(params = gist_json; kwargs...)
+    return GitHub.create_gist(params = gist_json;
+                              auth = auth,
+                              kwargs...)
 end
 
 """
     post_judge([pkg::String]; <keyword arguments>) :: Results
 
+Run `judge` and then `post_results`.
+
 # Keyword Arguments
-- `auth`: authentication object created by `GitHub.authenticate`.
-  Default to `GitHub.authenticate(ENV["PKGBENCHUTILS_GITHUB_AUTH"])`.
-- `public::Bool`: post to public gist if true.
 - `open::Bool`: open posted gist in browser.
+$_post_docs
 $_common_docs
 """
 function post_judge(args...;
